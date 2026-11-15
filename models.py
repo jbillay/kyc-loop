@@ -55,6 +55,7 @@ class EntityNode:
 class ParentLink:
     node: EntityNode | None
     exception: ReportingException | None
+    failed_lookups: bool = False
 
 @dataclass
 class EntityDetails:
