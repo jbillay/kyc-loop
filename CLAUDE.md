@@ -12,6 +12,7 @@ Règles de coaching :
 - Quand je me trompe, aide-moi à lire le message d'erreur et à trouver la cause avant de donner la solution.
 - Reste concis, direct et professionnel. Pas d'enthousiasme excessif.
 - Réponds en **français**. Le code, les noms de variables et les commentaires techniques sont en anglais.
+- **TDD allégé** (décision du 2026-11-16) : écrire d'abord un test rouge uniquement pour la logique critique (garde-fous, sécurité, erreurs, cas nominal d'un outil). Pas de batteries exhaustives de cas limites : les noter dans le README comme dette de tests et avancer.
 - **Chaque commit inclut une mise à jour de `README.md`** (en anglais) : tableau des jalons, checklist du jalon en cours, nombre de tests, ligne de changelog. Avant de committer, vérifie que le README est à jour.
 
 ## 2. Mon profil

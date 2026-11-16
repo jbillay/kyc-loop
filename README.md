@@ -57,7 +57,7 @@ Last updated: 2026-11-16
 - [x] Wire `get_entity_details` into the agent (confirmed LEI injected by code, never by the model)
 - [ ] Entity hierarchy: children, pagination, depth/node/call limits
 - [ ] System prompt update (new tool mentioned; still to explain `failed_lookups`)
-- [ ] Refactor `agent.py` (remove duplicated branches)
+- [x] Refactor `agent.py` (tools return `(text, is_error)`, single emit/append point, merged LEI injection)
 - [ ] Milestone wrap-up
 
 ### Tests
@@ -70,7 +70,8 @@ Newest first. Every commit adds a line here.
 
 | Date | Commit | Summary |
 |------|--------|---------|
-| 2026-11-16 | this commit | Wire `get_entity_details` into the agent (LEI injected from the session), add tool registry tests |
+| 2026-11-16 | this commit | Refactor `agent.py` (single result path), fix exception handling, test tool messages sent to the model |
+| 2026-11-16 | `e8c09e5` | Wire `get_entity_details` into the agent (LEI injected from the session), add tool registry tests |
 | 2026-11-15 | `c0906e3` | Add README with progress tracking |
 | 2026-11-15 | `659a084` | Add `get_entity_details` with parent links and error handling |
 | 2026-11-14 | `b5284a3` | Initial commit: milestones 1-5 in progress |

@@ -18,6 +18,44 @@ def _serialize(obj):
         return obj
     return json.dumps(obj, default=_default, ensure_ascii=False)
 
+def _confirm_entity(session: Session, ask: Callable[[NeedConfirmation], str| None]) -> tuple[str, bool]:
+    is_error = False
+    if session.candidates is None or len(session.candidates) == 0:
+        return_result = "Search for candidates first."
+        is_error = True
+    else:
+        existing_leis = [c.lei for c in session.candidates]
+        returned_lei = ask(NeedConfirmation(candidates=session.candidates))
+        if returned_lei and returned_lei in existing_leis:
+            session.confirmed_lei = returned_lei
+            return_result = f"User confirmed LEI: {returned_lei}"
+        elif returned_lei:
+            session.confirmed_lei = None
+            return_result = "User did not confirm a valid LEI. Ask the user to select a LEI from the provided candidates."
+            is_error = True
+        else:
+            session.confirmed_lei = None
+            return_result = "User did not confirm any LEI. Stop the process and ask the user to select a LEI from the provided candidates."
+            is_error = True
+    return return_result, is_error
+
+def error_missing_lei(name: str) -> tuple[str, bool]:
+    return_result = f"The tool {name} is not allowed to execute without a confirmed LEI. Call gleif_search, then ask_user_confirmation, before using this tool."
+    return return_result, True
+
+def get_tool_result(session: Session, name: str, args: dict) -> tuple[str, bool]:
+    is_error = False
+    result = TOOL_FUNCTIONS[name](**args)  # appel de la fonction correspondante
+    if result is not None:
+        return_result = _serialize(result)
+    else:
+        return_result = "No result returned."
+        is_error = True
+    if isinstance(result, SearchResult):
+        session.candidates = result.candidates
+        session.confirmed_lei = None
+    return return_result, is_error
+
 def run_agent(session: Session, user_input: str, client, emit: Callable[[Event], None], ask: Callable[[NeedConfirmation], str| None]) -> None:
     session.messages.append({"role": "user", "content": user_input})
 
@@ -40,56 +78,20 @@ def run_agent(session: Session, user_input: str, client, emit: Callable[[Event],
                 if name == "ask_user_confirmation":
                     tool_call = ToolCall(name=name, arguments={})
                     emit(tool_call)
-                    if session.candidates is None or len(session.candidates) == 0:
-                        return_result = "Search for candidates first."
-                        emit(ToolResult(tool_call=tool_call, result=return_result, is_error=True))
-                    else:
-                        existing_leis = [c.lei for c in session.candidates]
-                        returned_lei = ask(NeedConfirmation(candidates=session.candidates))
-                        if returned_lei and returned_lei in existing_leis:
-                            session.confirmed_lei = returned_lei
-                            return_result = f"User confirmed LEI: {returned_lei}"
-                            emit(ToolResult(tool_call=tool_call, result=return_result, is_error=False))
-                        elif returned_lei:
-                            session.confirmed_lei = None
-                            return_result = "User did not confirm a valid LEI. Ask the user to select a LEI from the provided candidates."
-                            emit(ToolResult(tool_call=tool_call, result=return_result, is_error=True))
-                        else:
-                            session.confirmed_lei = None
-                            return_result = "User did not confirm any LEI. Stop the process and ask the user to select a LEI from the provided candidates."
-                            emit(ToolResult(tool_call=tool_call, result=return_result, is_error=True))
+                    (return_result, is_error) = _confirm_entity(session, ask)
                 elif name not in TOOL_WITHOUT_LEI and not session.confirmed_lei:
                     args = json.loads(call.function.arguments)
                     tool_call = ToolCall(name=name, arguments=args)
                     emit(tool_call)
-                    return_result = f"The tool {name} is not allowed to execute without a confirmed LEI. Call gleif_search, then ask_user_confirmation, before using this tool."
-                    emit(ToolResult(tool_call=tool_call, result=return_result, is_error=True))
-                elif name in TOOL_WITH_CONFIRMED_LEI:
-                    args = json.loads(call.function.arguments)
-                    args["lei"] = session.confirmed_lei
-                    tool_call = ToolCall(name=name, arguments=args)
-                    emit(tool_call)
-                    result = TOOL_FUNCTIONS[name](**args)  # appel de la fonction correspondante
-                    if result is not None:
-                        return_result = _serialize(result)
-                        emit(ToolResult(tool_call=tool_call, result=return_result, is_error=False))
-                    else:
-                        return_result = "No result returned."
-                        emit(ToolResult(tool_call=tool_call, result=return_result, is_error=True))
+                    (return_result, is_error) = error_missing_lei(tool_call.name)
                 else:
                     args = json.loads(call.function.arguments)
+                    if name in TOOL_WITH_CONFIRMED_LEI:
+                        args["lei"] = session.confirmed_lei
                     tool_call = ToolCall(name=name, arguments=args)
                     emit(tool_call)
-                    result = TOOL_FUNCTIONS[name](**args)  # appel de la fonction correspondante
-                    if result is not None:
-                        return_result = _serialize(result)
-                        emit(ToolResult(tool_call=tool_call, result=return_result, is_error=False))
-                    else:
-                        return_result = "No result returned."
-                        emit(ToolResult(tool_call=tool_call, result=return_result, is_error=True))
-                    if isinstance(result, SearchResult):
-                        session.candidates = result.candidates
-                        session.confirmed_lei = None
+                    (return_result, is_error) = get_tool_result(session, name, args)
+                emit(ToolResult(tool_call=tool_call, result=return_result, is_error=is_error))
             except Exception as e:
                 return_result = f"Error occurred while executing {name}: {e}"
                 emit(ToolResult(tool_call=tool_call, result=return_result, is_error=True))

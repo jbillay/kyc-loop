@@ -45,3 +45,6 @@ def llm_response(content=None, tool_calls=None):
 def tool_call(call_id, name, arguments: dict):
     function = SimpleNamespace(name=name, arguments=json.dumps(arguments))
     return SimpleNamespace(id=call_id, function=function)
+
+def tool_messages(session):
+    return [m for m in session.messages if isinstance(m, dict) and m["role"] == "tool"]
