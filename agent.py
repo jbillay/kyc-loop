@@ -65,7 +65,17 @@ def run_agent(session: Session, user_input: str, client, emit: Callable[[Event],
                     return_result = f"The tool {name} is not allowed to execute without a confirmed LEI. Call gleif_search, then ask_user_confirmation, before using this tool."
                     emit(ToolResult(tool_call=tool_call, result=return_result, is_error=True))
                 elif name in TOOL_WITH_CONFIRMED_LEI:
+                    args = json.loads(call.function.arguments)
                     args["lei"] = session.confirmed_lei
+                    tool_call = ToolCall(name=name, arguments=args)
+                    emit(tool_call)
+                    result = TOOL_FUNCTIONS[name](**args)  # appel de la fonction correspondante
+                    if result is not None:
+                        return_result = _serialize(result)
+                        emit(ToolResult(tool_call=tool_call, result=return_result, is_error=False))
+                    else:
+                        return_result = "No result returned."
+                        emit(ToolResult(tool_call=tool_call, result=return_result, is_error=True))
                 else:
                     args = json.loads(call.function.arguments)
                     tool_call = ToolCall(name=name, arguments=args)

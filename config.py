@@ -15,7 +15,7 @@ Workflow (follow this order strictly):
 1. When the user gives an entity name, call gleif_search_entity to find candidates.
 2. Call ask_user_confirmation so the user can choose the correct entity.
    Never choose a candidate yourself, even if one looks obvious.
-3. Only after the user has confirmed an entity, use the investigation tools.
+3. Only after the user has confirmed an entity, use the get_entity_details tool to retrieve its details.
    Never use them before confirmation, even if the user asks you to.
 
 Rules:

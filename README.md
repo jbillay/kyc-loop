@@ -35,7 +35,7 @@ python -m pytest
 
 ## Progress
 
-Last updated: 2026-11-15
+Last updated: 2026-11-16
 
 | # | Milestone | Status |
 |---|-----------|--------|
@@ -54,14 +54,15 @@ Last updated: 2026-11-15
 - [x] `gleif_search_entity` with partial-failure tracking
 - [x] HITL confirmation + guard-rail (no investigation tool before confirmation)
 - [x] `get_entity_details` function: record, addresses, identity, direct and ultimate parent (tested)
-- [ ] Wire `get_entity_details` into the agent (confirmed LEI injected by code, never by the model)
+- [x] Wire `get_entity_details` into the agent (confirmed LEI injected by code, never by the model)
 - [ ] Entity hierarchy: children, pagination, depth/node/call limits
-- [ ] System prompt update (new tool, `failed_lookups`)
+- [ ] System prompt update (new tool mentioned; still to explain `failed_lookups`)
+- [ ] Refactor `agent.py` (remove duplicated branches)
 - [ ] Milestone wrap-up
 
 ### Tests
 
-36 tests passing (`python -m pytest`): GLEIF client, search, details, agent guard-rail.
+42 tests passing (`python -m pytest`): GLEIF client, search, details, agent guard-rail and LEI injection, tool registry.
 
 ## Changelog
 
@@ -69,7 +70,8 @@ Newest first. Every commit adds a line here.
 
 | Date | Commit | Summary |
 |------|--------|---------|
-| 2026-11-15 | README | Add README with progress tracking |
+| 2026-11-16 | this commit | Wire `get_entity_details` into the agent (LEI injected from the session), add tool registry tests |
+| 2026-11-15 | `c0906e3` | Add README with progress tracking |
 | 2026-11-15 | `659a084` | Add `get_entity_details` with parent links and error handling |
 | 2026-11-14 | `b5284a3` | Initial commit: milestones 1-5 in progress |
 

@@ -1,4 +1,5 @@
 
+from .gleif_details import get_entity_details
 from .gleif_search import gleif_search_entity
 
 TOOL_WITHOUT_LEI = ["gleif_search_entity", "ask_user_confirmation"]
@@ -6,6 +7,7 @@ TOOL_WITH_CONFIRMED_LEI = ["get_entity_details"]
 
 TOOL_FUNCTIONS = {
     "gleif_search_entity": gleif_search_entity,
+    "get_entity_details": get_entity_details,
 }
 
 TOOL_SCHEMAS = [
@@ -20,6 +22,19 @@ TOOL_SCHEMAS = [
                     "name": {"type": "string", "description": "The name of the entity to search for."}
                 },
                 "required": ["name"]
+            }
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_entity_details",
+            "description": "Retrieves the details and parent entities of the entity confirmed by the user. Takes no argument.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+
             }
         },
     },
